@@ -1,4 +1,8 @@
-import AutomatedTask from "./AutomatedTask";
+import AutomatedTask from "../src/AutomatedTask";
+
+
+
+
 // console.log(this)
 function taskFactory() {
     return async() => {
@@ -19,16 +23,17 @@ function taskFactory() {
     const task = new AutomatedTask({
         delay:1000,
         numRepetitions:10,
-        factory:taskFactory,
-        onError(e) {
+        taskFactory:taskFactory,
+        shouldStopOnError(e) {
             console.log('error from hook',e.message)
             return true
         },
-        onSuccessfulRepetition(...args) {
+        shouldStopOnSuccess(...args) { 
             console.log(args[0])
             return false
         },
     });
     const results = await task.start()
     console.log(results)
+    
 })()

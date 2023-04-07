@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutomatedTask Test</title>
+</head>
+
+<body>
+    <div id="container">
+        <p class="item-to-modify"></p>
+        <p class="item">Item 1</p>
+        <p class="item">Item 2</p>
+        <p class="item">Item 3</p>
+    </div>
+    <script src="../build/umd/index.js"></script>
+    <script>
+        const {AutomatedTask} = window['javascript-automated-task']
+        const updateDOM = () => {
+            console.log('updating dom')
+            const container = document.querySelector("#container");
+            const newItem = document.createElement("p");
+            newItem.classList.add("item");
+            newItem.textContent = `Item ${container.querySelectorAll(".item").length + 1}`;
+            container.appendChild(newItem);
+        }
+
+        const config = {
+            numRepetitions:5,
+            delay: 100,
+            taskFactory: () => {
+                return updateDOM;
+            },
+        };
+
+        const task = new AutomatedTask(config);
+        task.start().then((results) => {
+            console.log('task completed',results)
+        });
+    </script>
+</body>
+
+</html>

@@ -17,27 +17,30 @@ export default class AutomatedTask {
     async start() {
 
         for (let i = 0; i < this.config.numRepetitions; i++) {
-            const task = this.config.factory()
+            const task = this.config.taskFactory()
 
             try {
                 const result = await task()
                 this.taskReport.results.push(result)
                 this.taskReport.numSuccessfulRepetitions++
-                this.config.onSuccessfulRepetition && await this.config.onSuccessfulRepetition(result)
+                this.config.shouldStopOnSuccess && await this.config.shouldStopOnSuccess(result)
+                await timeout(this.config.delay)
             } catch (error) {
                 this.taskReport.numErrors++
-                // console.log('caught error ', error)
-                const shouldStop = this.config.onError ?  await this.config.onError(error) : false
+                // console.log('caught error ', error)//
+                const shouldStop = this.config.shouldStopOnError ?  await this.config.shouldStopOnError(error) : false
                 if(shouldStop){
                     break;
                 }
                
-            }
-            // await setTimeout(500)
-            
+            }           
 
         }
         return this.taskReport
-        // console.log('numErrors', numErrors)
     }
+}
+
+
+function timeout(milliseconds: number) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
 }

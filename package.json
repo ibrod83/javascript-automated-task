@@ -6,7 +6,8 @@
   "umd:main": "build/umd/index.js",
   "scripts": {
     "nodemon": "nodemon ./src/playground.ts",
-    "test": "ts-mocha src/**/*.spec.ts -w --watch-files '**/*.ts'",
+    "test": "npm run build:umd && ts-mocha --timeout 100000 tests/**/*.spec.ts -w --watch-files '**/*.ts'",
+    "test-puppeteer": "npm run build:umd && ts-mocha --timeout 100000 tests/puppeteer.spec.ts -w --watch-files '**/*.ts'",
     "start": "tsc --watch -p config/tsconfig.cjs.json",
     "build": "npm run build:cjs && npm run build:esm && npm run build:umd",
     "build:cjs": "node cleanup cjs && tsc -p config/tsconfig.cjs.json",
@@ -17,7 +18,14 @@
   },
   "author": "ibrod83",
   "license": "ISC",
-  "keywords": [],
+  "description": "A Javascript/Typescript utility to repeat tasks",
+  "keywords": [
+    "automation",
+    "repetition",
+    "javascript",
+    "automated",
+    "task"
+  ],
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.5",
@@ -25,6 +33,7 @@
     "lodash": "^4.17.21",
     "mocha": "^10.2.0",
     "nodemon": "^2.0.21",
+    "puppeteer": "^19.8.3",
     "ts-loader": "^9.4.2",
     "ts-mocha": "^10.0.0",
     "ts-node": "^10.9.1",
@@ -33,12 +42,12 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.13.1"
   },
-  "homepage": "https://github.com/ibrod83/javascript-binary-converter",
+  "homepage": "https://github.com/ibrod83/javascript-automated-task",
   "bugs": {
-    "url": "https://github.com/ibrod83/javascript-binary-converter/issues"
+    "url": "https://github.com/ibrod83/javascript-automated-task/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ibrod83/javascript-binary-converter.git"
+    "url": "https://github.com/ibrod83/javascript-automated-task.git"
   }
 }

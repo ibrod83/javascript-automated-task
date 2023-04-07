@@ -3,11 +3,11 @@ export interface TaskFactory {
 }
 
 export interface AutomatedTaskConfig {
-    onError?: (e: any)=>boolean
-    onSuccessfulRepetition?: (result: any)=>boolean
+    shouldStopOnError?: (e: any)=>boolean
+    shouldStopOnSuccess?: (result: any)=>boolean     
     numRepetitions: number
     delay: number
-    factory: TaskFactory    
+    taskFactory: TaskFactory    
 }
 
 export interface TaskReport{
