@@ -21,8 +21,6 @@ npm install javascript-automated-task
   - [Basic](#basic)
   - [Hook into errors](#hook-into-errors)
   - [Hook into successful repetitions](#hook-into-successful-repetitions)
-
-
         
 
 
@@ -60,10 +58,7 @@ npm install javascript-automated-task
 
         console.log('Done, this is the array of results from the report: ', taskReport.results)//Will print an array of results
 
-   })()
-
-  
- 
+   })() 
 ```
 
 #### Hook into errors
@@ -100,13 +95,9 @@ If an exception is thrown during a repetition, the shouldStopOnError hook is cal
 
         const taskReport:TaskReport = await task.start()
 
-
-
-   })()
-
-  
- 
+   })() 
 ```
+
 #### Hook into successful repetitions
 
 A repetition that doesn't throw an error, is considered "successful", and the program will continue repeating the task. That said, you can still stop the repetition, based on some other criteria
@@ -137,11 +128,5 @@ A repetition that doesn't throw an error, is considered "successful", and the pr
         const task = new AutomatedTask(config);
 
         const taskReport:TaskReport = await task.start()
-
-
-
-   })()
-
-  
- 
+   })() 
 ```
