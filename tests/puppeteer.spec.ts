@@ -17,7 +17,7 @@ describe("AutomatedTask Puppeteer", () => {
     page = await browser.newPage();
     await page.goto("file://" + __dirname + "/test.html");
     await setLargePageHeight(page);
-    await setTimeout(1000)
+    await setTimeout(100)
 
   });
 
