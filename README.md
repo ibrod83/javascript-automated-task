@@ -21,6 +21,7 @@ npm install javascript-automated-task
   - [Basic](#basic)
   - [Hook into errors](#hook-into-errors)
   - [Hook into successful repetitions](#hook-into-successful-repetitions)
+  - [Pause and resume](#pause-and-resume)
         
 
 
@@ -130,3 +131,42 @@ A repetition that doesn't throw an error, is considered "successful", and the pr
         const taskReport:TaskReport = await task.start()
    })() 
 ```
+
+#### Pause and resume
+
+An automated task can be paused and resumed.
+
+
+```javascript
+   import { AutomatedTask, AutomatedTaskConfig, TaskFactory,TaskReport } from "javascript-automated-task";
+
+   (async()=>{
+      const myTaskFactory: TaskFactory = () => {
+          return async () => {
+            // Your task logic here
+          };
+        };
+
+        const config: AutomatedTaskConfig = {
+            numRepetitions: 5,//Repeat 5 times
+            delay: 1000,//Delay of one second between each repetition
+            taskFactory: myTaskFactory   
+        };
+
+        const task = new AutomatedTask(config);
+
+        const prom = task.start();
+
+        setTimeout(()=>{
+          task.pause()//Pause the automated task
+        },1000)
+
+        setTimeout(()=>{
+          task.resume()//Resume it
+        },3000)
+
+         const taskReport = await prom;//Will be resolved after all iterations are complete, meaning
+         //task.resume() was called, in this case.
+   })() 
+```
+
