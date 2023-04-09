@@ -93,12 +93,12 @@ function timeout(milliseconds: number) {//
 
 
 
-(async()=>{
-    let counter=0
-    while(true){
-        counter++
-        console.log(counter)
-      await timeout(20)  
-    }
+// (async()=>{
+//     let counter=0
+//     while(true){
+//         counter++
+//         console.log(counter)
+//       await timeout(20)  
+//     }
     
-})()
+// })()
