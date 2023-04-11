@@ -22,6 +22,7 @@ npm install javascript-automated-task
   - [Hook into errors](#hook-into-errors)
   - [Hook into successful repetitions](#hook-into-successful-repetitions)
   - [Pause and resume](#pause-and-resume)
+  - [Stop](#stop)
         
 
 
@@ -155,18 +156,51 @@ An automated task can be paused and resumed.
 
         const task = new AutomatedTask(config);
 
+        document.querySelector("#pause").addEventListener("click",()=>{
+           task.pause()//Pause the automated task
+        })
+
+         document.querySelector("#resume").addEventListener("click",()=>{
+           task.resume()//Resume the automated task
+        })
+
         const prom = task.start();
-
-        setTimeout(()=>{
-          task.pause()//Pause the automated task
-        },1000)
-
-        setTimeout(()=>{
-          task.resume()//Resume it
-        },3000)
 
          const taskReport = await prom;//Will be resolved after all iterations are complete, meaning
          //task.resume() was called, in this case.
    })() 
 ```
+
+#### Stop
+
+Unlike pause(), stop() will terminate the task repetition, and cause the task.start() promise to resolve
+
+```javascript
+   import { AutomatedTask, AutomatedTaskConfig, TaskFactory,TaskReport } from "javascript-automated-task";
+
+   (async()=>{
+      const myTaskFactory: TaskFactory = () => {
+          return async () => {
+            // Your task logic here
+          };
+        };
+
+        const config: AutomatedTaskConfig = {
+            numRepetitions: 500,//Repeat 500 times
+            delay: 1000,//Delay of one second between each repetition
+            taskFactory: myTaskFactory   
+        };
+
+        const task = new AutomatedTask(config);
+
+        document.querySelector("#stop").addEventListener("click",()=>{
+           task.stop()//Stop the automated task
+        })
+
+        const prom = task.start();
+
+         const taskReport = await prom;//Will be resolved either when all repetitions are complete, or when stop() is called
+   })() 
+```
+
 

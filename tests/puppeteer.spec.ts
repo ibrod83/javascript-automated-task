@@ -85,4 +85,6 @@ describe("AutomatedTask Puppeteer", () => {
     const result = await page.evaluate(scrollToBottom);
     expect(result).toBe(true);
   });
+
+  
 });
