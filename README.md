@@ -25,6 +25,7 @@ npm install javascript-automated-task
   - [Pause and resume](#pause-and-resume)
   - [Stop](#stop)
   - [Increase and decrease speed](#increase-and-decrease-speed)
+  - [Schedule the task](#schedule-the-task)
         
 
 
@@ -273,6 +274,52 @@ You can change the delay between each repetition, even after the automated task 
         })      
 
          const taskReport = await task.start();
+   })() 
+```
+
+#### Schedule the task
+
+You can schedule the task, by providing a Date object via the optional startDate property of the AutomatedTaskConfig
+
+```javascript
+   import { AutomatedTask, AutomatedTaskConfig, TaskFactory,TaskReport } from "javascript-automated-task";
+
+   (async()=>{
+
+      //Just an example...
+      function getDate20SecondsInFuture() {
+          // Get the current date and time
+          const now = new Date();
+        
+          // Add 20 seconds to the current time
+          const futureTime = now.getTime() + 20 * 1000;
+        
+          // Create a new Date object with the future time
+          const futureDate = new Date(futureTime);
+        
+          // Return the future Date object
+          return futureDate;
+       }
+
+      const taskFactory: TaskFactory = () => {
+          return () => {
+            return "hey"
+          };
+        };
+
+        const config: AutomatedTaskConfig = {
+            delay: 100,
+            numRepetitions: 10,
+            taskFactory,
+            onSuccess(r:any){
+                console.log(r)
+            },
+            startDate:getDate20SecondsInFuture() 
+        };
+
+        const task = new AutomatedTask(config);   
+
+        const taskReport = await task.start();//Will start in 20 seconds
    })() 
 ```
 

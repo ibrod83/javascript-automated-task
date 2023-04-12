@@ -1,14 +1,15 @@
 import { createDeferred } from "./deferred";
-import { AutomatedTaskConfig, TaskReport } from "./types";
+import { AutomatedTaskConfig, CREATED, FINISHED, PAUSED, RUNNING, TaskReport, TaskState } from "./types";
 
 
 export default class AutomatedTask {
 
+    private isStopped = false
+    private pausedDeferred = createDeferred()
+
     config!: AutomatedTaskConfig
     taskReport!: TaskReport
-    private isStopped = false
-
-    private pausedDeferred = createDeferred()
+    taskState: TaskState = CREATED;
 
     constructor(config: AutomatedTaskConfig) {
         this.pausedDeferred.resolve()
@@ -22,10 +23,19 @@ export default class AutomatedTask {
             errors: [],
             results: []
         }
-    }  
+    }
 
 
     async start() {
+
+        if (this.config.startDate) {
+            const now = new Date();
+            const delay = this.config.startDate.getTime() - now.getTime();
+            if (delay > 0) {
+                await timeout(delay);
+            }
+        }
+        this.taskState = RUNNING
 
         for (let i = 0; i < this.config.numRepetitions; i++) {
 
@@ -56,20 +66,24 @@ export default class AutomatedTask {
             }
 
         }
+        this.taskState = FINISHED
         return this.taskReport
     }
 
     stop() {
         this.isStopped = true
+        this.taskState = FINISHED
         this.pausedDeferred.resolve()
     }
 
     pause() {
+        this.taskState = PAUSED
         this.pausedDeferred = createDeferred()
     }
 
-    resume() {
+    resume() {       
         this.pausedDeferred.resolve()
+        this.taskState = RUNNING
     }
 
     increaseDelay(mil: number = 100) {

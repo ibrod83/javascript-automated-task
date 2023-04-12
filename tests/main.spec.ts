@@ -279,5 +279,19 @@ describe('AutomatedTask', () => {
     expect(results).toEqual(['success','success'])
   });
 
+  it('should start the task at the specified startDate', async () => {
+    const startDate = new Date(Date.now() + 1000); // Schedule the task to start 1 second from now
+    const mockFactory = () => {
+      return async () => {};
+    };
+    const config = { numRepetitions: 1, taskFactory: mockFactory, startDate };
+    const task = new AutomatedTask(config);
+    const start = Date.now()
+    await task.start();
+    const end = Date.now()
+    const timeDifference = end - start;
+    expect(timeDifference).toBeGreaterThanOrEqual(1000);//
+  });
+
 
 });
