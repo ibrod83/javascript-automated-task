@@ -9,7 +9,7 @@ describe('AutomatedTask', () => {
     let count = 0;
     const mockFactory = () => {
       count++;
-      return async () => {
+      return () => {
 
       };
     };
@@ -94,7 +94,7 @@ describe('AutomatedTask', () => {
     let resultFromHook;
     const config: AutomatedTaskConfig = {
       numRepetitions: 1,
-      delay: 0,
+      // delay: 0,
       taskFactory: mockFactory,
       shouldStopOnSuccess: (result) => {
 
@@ -227,6 +227,19 @@ describe('AutomatedTask', () => {
     expect(taskReport.numErrors).toBe(0);
     expect(taskReport.results).toEqual(['success'])
   });
+
+  it('should execute without delay when no delay property is passed in the config', async () => {
+    const startTime = Date.now();
+    const mockFactory = () => async () => { };
+    const config = { numRepetitions: 3, taskFactory: mockFactory };
+    const task = new AutomatedTask(config);
+    const report = await task.start();
+    const endTime = Date.now();
+    const elapsedTime = endTime - startTime;
+    
+    expect(elapsedTime).toBeLessThanOrEqual(100); // Assumes that execution without delay should be within 100ms
+    expect(report.results).toEqual([undefined, undefined, undefined]);
+});
 
 
 

@@ -1,88 +1,86 @@
-import { AutomatedTaskConfig,   TaskReport } from "./types";
+import { createDeferred } from "./deferred";
+import { AutomatedTaskConfig, TaskReport } from "./types";
+
 
 export default class AutomatedTask {
 
     config!: AutomatedTaskConfig
     taskReport!: TaskReport
     private isStopped = false
-    private isPaused = false;
+
+    private pausedDeferred = createDeferred()
 
     constructor(config: AutomatedTaskConfig) {
-        this.config = config;
+        this.pausedDeferred.resolve()
+        this.config = {
+            delay: 0,
+            ...config
+        };
         this.taskReport = {
             numErrors: 0,
             numSuccessfulRepetitions: 0,
-            results: []//
+            errors: [],
+            results: []
         }
-    }
+    }  
 
-    private async handlePause() {
-        while (this.isPaused) {
-            if(this.isStopped){
-                break;
-            }
-            await timeout(50); // Introduce a small delay to avoid blocking the main thread
-        }
-    }
-
-    // private async *taskGenerator(){//
-    //     while(true){
-    //         await timeout(10)
-    //         const promiseFactory = this.config.taskFactory()//
-    //         yield promiseFactory
-    //     }
-    // }    
- 
 
     async start() {
-        // const generator = this.taskGenerator()
 
         for (let i = 0; i < this.config.numRepetitions; i++) {
-            if(this.isPaused){
-                await this.handlePause()
-            }
+
+            await this.pausedDeferred.promise
             if (this.isStopped) {
-                // generator.return()
                 break;
             }
 
             const promiseFactory = this.config.taskFactory()//
-            
 
             try {
-                // const next =await generator.next()
-                // const task = next.value as (() => Promise<any>)
-               
-                // const result = await task()
+
                 const result = await promiseFactory()
 
                 this.taskReport.results.push(result)//
                 this.taskReport.numSuccessfulRepetitions++
                 this.config.shouldStopOnSuccess && await this.config.shouldStopOnSuccess(result)
-                await timeout(this.config.delay)
+                await timeout(this.config.delay as number)
             } catch (error) {
                 this.taskReport.numErrors++
+                this.taskReport.errors.push(error)
                 const shouldStop = this.config.shouldStopOnError ? await this.config.shouldStopOnError(error) : false
                 if (shouldStop) {
                     break;
                 }
-
             }
 
         }
         return this.taskReport
     }
 
-    stop() {      
+    stop() {
         this.isStopped = true
+        this.pausedDeferred.resolve()
     }
 
     pause() {
-        this.isPaused = true;
+        this.pausedDeferred = createDeferred()
     }
 
     resume() {
-        this.isPaused = false;
+        this.pausedDeferred.resolve()
+    }
+
+    increaseDelay(mil: number = 100) {
+
+        this.config.delay = this.config.delay as number + mil
+    }
+
+    decreaseDelay(mil: number = 100) {
+        const diff = this.config.delay as number - mil
+        if (mil < 0) {
+            return
+        }
+        this.config.delay = diff
     }
 }
 
@@ -92,13 +90,17 @@ function timeout(milliseconds: number) {//
 }
 
 
-
 // (async()=>{
-//     let counter=0
 //     while(true){
-//         counter++
-//         console.log(counter)
-//       await timeout(20)  
+//         // await timeout(50)
+//         // console.log(Math.random())
+//         await createFakePromise()
 //     }
-    
 // })()
+
+
+
+// function createFakePromise(){
+//     return Promise.resolve()
+// }
+

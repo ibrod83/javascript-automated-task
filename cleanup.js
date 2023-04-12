@@ -24,3 +24,7 @@ if (folder) {
   deleteFolderRecursive(Path.join(__dirname, 'build/esm'))
   deleteFolderRecursive(Path.join(__dirname, 'build/umd'))
 }
+
+
+
+

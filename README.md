@@ -38,7 +38,7 @@ npm install javascript-automated-task
    //Wrapping the code in an async IIFE just for the sake of the example 
    (async()=>{
       const myTaskFactory: TaskFactory = () => {
-          return async () => {
+          return () => {
             // Your task logic here. For example, automated scrolling and collection of some data:
            
             window.scrollTo(0, document.body.scrollHeight);
