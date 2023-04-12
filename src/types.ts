@@ -1,8 +1,10 @@
 export type TaskFactory= () =>() => Promise<any> | any;
 
 export interface AutomatedTaskConfig {
-    shouldStopOnError?: ((e: any) => boolean) | ((e: any) => Promise<boolean>);
-    shouldStopOnSuccess?: ((result: any) => boolean) | ((result: any) => Promise<boolean>);   
+    shouldStopOnError?: (e: any) => boolean | Promise<boolean>
+    shouldStopOnSuccess?: (result: any) => boolean |  Promise<boolean>
+    onError?: (e: any) =>  Promise<void>| void 
+    onSuccess?: (result: any) => void | Promise<void> 
     numRepetitions: number
     delay?: number
     taskFactory: TaskFactory    

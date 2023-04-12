@@ -42,11 +42,13 @@ export default class AutomatedTask {
 
                 this.taskReport.results.push(result)//
                 this.taskReport.numSuccessfulRepetitions++
+                this.config.onSuccess && await this.config.onSuccess(result)
                 this.config.shouldStopOnSuccess && await this.config.shouldStopOnSuccess(result)
                 await timeout(this.config.delay as number)
             } catch (error) {
                 this.taskReport.numErrors++
                 this.taskReport.errors.push(error)
+                this.config.onError && await this.config.onError(error)
                 const shouldStop = this.config.shouldStopOnError ? await this.config.shouldStopOnError(error) : false
                 if (shouldStop) {
                     break;

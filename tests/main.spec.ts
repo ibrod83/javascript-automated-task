@@ -200,18 +200,14 @@ describe('AutomatedTask', () => {
       };
     };
 
-    let firstResult
-
-    const config :AutomatedTaskConfig= {
+    const config: AutomatedTaskConfig = {
       numRepetitions: 5,
       delay: 100,
       taskFactory: taskFactory,
-      shouldStopOnSuccess(result){
-        firstResult = result;
+      shouldStopOnSuccess(result) {
         automatedTask.pause()
         return false
       }
-      
     };
 
     var automatedTask = new AutomatedTask(config);
@@ -236,11 +232,52 @@ describe('AutomatedTask', () => {
     const report = await task.start();
     const endTime = Date.now();
     const elapsedTime = endTime - startTime;
-    
+
     expect(elapsedTime).toBeLessThanOrEqual(100); // Assumes that execution without delay should be within 100ms
     expect(report.results).toEqual([undefined, undefined, undefined]);
-});
+  });
 
+  it('should call onError when an error occurs during task execution', async () => {
+    let onErrorCalled = false;
+    let error;
+    const mockFactory = () => async () => {
+      throw new Error('error');
+    };
+    const config: AutomatedTaskConfig = {
+      numRepetitions: 2,
+      delay: 0,
+      taskFactory: mockFactory,
+      onError(e) {
+        onErrorCalled = true;
+        error = e
+      },
+    };
+    const task = new AutomatedTask(config);
+   const report =  await task.start();
+    expect(onErrorCalled).toEqual(true);
+    expect(error.message).toEqual('error');
+    expect(report.numErrors).toEqual(2);
+  });
+
+  it('should call onSuccess when a task is executed successfully', async () => {
+    let onSuccessCalled = false;
+    const results:any[] = []
+    const mockFactory = () => async () => 'success';
+    const config: AutomatedTaskConfig = {
+      numRepetitions: 2,
+      delay: 0,
+      taskFactory: mockFactory,
+      onSuccess(r) {
+        results.push(r)
+        onSuccessCalled = true;
+      },
+    };
+    const task = new AutomatedTask(config);
+    const report = await task.start();
+    expect(onSuccessCalled).toEqual(true);
+    expect(report.numSuccessfulRepetitions).toEqual(2);
+    expect(results).toEqual(['success','success'])
+  });
 
 
 });

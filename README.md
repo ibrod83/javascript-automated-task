@@ -19,10 +19,12 @@ npm install javascript-automated-task
 
 - [Examples](#examples)
   - [Basic](#basic)
-  - [Hook into errors](#hook-into-errors)
-  - [Hook into successful repetitions](#hook-into-successful-repetitions)
+  - [onError and onSuccess hooks](#onerror-and-onsuccess-hooks)
+  - [Decide if to stop in case of an error](#decide-if-to-stop-in-case-of-an-error)
+  - [Decide if to stop in case of a successful repetition](#decide-if-to-stop-in-case-of-a-successful-repetition)
   - [Pause and resume](#pause-and-resume)
   - [Stop](#stop)
+  - [Increase and decrease speed](#increase-and-decrease-speed)
         
 
 
@@ -50,7 +52,7 @@ npm install javascript-automated-task
 
         const config: AutomatedTaskConfig = {
             numRepetitions: 5,//Repeat 5 times
-            delay: 1000,//Delay of one second between each repetition
+            delay: 1000,//Delay of one second between each repetition. Default is 0
             taskFactory: myTaskFactory,     
         };
 
@@ -63,7 +65,42 @@ npm install javascript-automated-task
    })() 
 ```
 
-#### Hook into errors
+#### onError and onSuccess hooks
+
+the program doesn't quit when an error occurs. Instead, it exposes an onError hook
+
+```javascript
+   import { AutomatedTask, AutomatedTaskConfig, TaskFactory,TaskReport } from "javascript-automated-task";
+
+   //Wrapping the code in an async IIFE just for the sake of the example 
+   (async()=>{
+      const myTaskFactory: TaskFactory = () => {
+          return () => {
+            // Your task logic here
+          };
+        };
+
+        const config: AutomatedTaskConfig = {
+            numRepetitions: 5,//Repeat 5 times
+            taskFactory: myTaskFactory,
+            onError(e){//Hook into every error and get the Error object
+              console.log(e)
+            },
+            onSuccess(result){
+              console.log(result)//hook into each successful iteration, and get the result
+            }     
+        };
+
+        const task = new AutomatedTask(config);
+
+        const taskReport:TaskReport = await task.start()
+
+   })() 
+```
+
+#### Decide if to stop in case of an error
+
+(This hook is called after onError)
 
 If an exception is thrown during a repetition, the shouldStopOnError hook is called with the error object. If you return true from this hook, the repetition will stop (this allows customization of what should be considered "an error")
 
@@ -100,7 +137,9 @@ If an exception is thrown during a repetition, the shouldStopOnError hook is cal
    })() 
 ```
 
-#### Hook into successful repetitions
+#### Decide if to stop in case of a successful repetition
+
+(This hook is called after onSuccess)
 
 A repetition that doesn't throw an error, is considered "successful", and the program will continue repeating the task. That said, you can still stop the repetition, based on some other criteria
 
@@ -200,6 +239,40 @@ Unlike pause(), stop() will terminate the task repetition, and cause the task.st
         const prom = task.start();
 
          const taskReport = await prom;//Will be resolved either when all repetitions are complete, or when stop() is called
+   })() 
+```
+
+#### Increase and decrease speed
+
+You can change the delay between each repetition, even after the automated task has started
+
+```javascript
+   import { AutomatedTask, AutomatedTaskConfig, TaskFactory,TaskReport } from "javascript-automated-task";
+
+   (async()=>{
+      const myTaskFactory: TaskFactory = () => {
+          return () => {
+            // Your task logic here
+          };
+        };
+
+        const config: AutomatedTaskConfig = {
+            numRepetitions: 500,//Repeat 500 times
+            delay: 1000,//Set the delay to one second initially
+            taskFactory: myTaskFactory   
+        };
+
+        const task = new AutomatedTask(config);
+
+        document.querySelector("#faster").addEventListener("click",()=>{
+           task.decreaseDelay(100)//Decrease by 100 milliseconds
+        })
+
+        document.querySelector("#slower").addEventListener("click",()=>{
+           task.increaseDelay(100)//Increase by 100 milliseconds
+        })      
+
+         const taskReport = await task.start();
    })() 
 ```
 
