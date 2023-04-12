@@ -1,6 +1,6 @@
 # Javascript Automated Task
 
-Javascript Automated Task is a simple utility to manage and run tasks in a repeatable, configurable manner. It provides an easy-to-use interface to execute tasks with customizable options such as number of repetitions, delay between repetitions, stopping conditions, and more. In addition to these features, it also includes the ability to pause, resume, and stop tasks, giving you greater control over the execution flow.
+Javascript Automated Task is a simple utility to manage and run tasks in a repeatable, configurable manner. It provides an easy-to-use interface to execute tasks with customizable options such as number of repetitions, delay between repetitions, stopping conditions, scheduling and more. In addition to these features, it also includes the ability to pause, resume, and stop tasks, giving you greater control over the execution flow.
 
 This utility works both in the browser and in Node.js.
 
