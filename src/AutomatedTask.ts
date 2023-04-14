@@ -1,5 +1,5 @@
 import { createDeferred } from "./deferred";
-import { AutomatedTaskConfig, CREATED, FINISHED, PAUSED, RUNNING, TaskReport, TaskState } from "./types";
+import { AutomatedTaskConfig,  InitialTaskReport,  InternalAutomatedTaskConfig,  Schedule,  TaskReport,  } from "./types";
 
 
 export default class AutomatedTask {
@@ -7,35 +7,39 @@ export default class AutomatedTask {
     private isStopped = false
     private pausedDeferred = createDeferred()
 
-    config!: AutomatedTaskConfig
-    taskReport!: TaskReport
-    taskState: TaskState = CREATED;
+    config!: InternalAutomatedTaskConfig
+    schedule?:Schedule
+   
 
     constructor(config: AutomatedTaskConfig) {
         this.pausedDeferred.resolve()
         this.config = {
             delay: 0,
+            numRepetitions:1,
             ...config
         };
-        this.taskReport = {
+    }
+
+    
+
+    async start() {
+        const now = new Date()
+        const taskReport: InitialTaskReport = {
             numErrors: 0,
             numSuccessfulRepetitions: 0,
             errors: [],
-            results: []
+            results: [],
+            startedAt:now,
+
         }
-    }
+        taskReport.startedAt = now
 
-
-    async start() {
-
-        if (this.config.startDate) {
-            const now = new Date();
-            const delay = this.config.startDate.getTime() - now.getTime();
-            if (delay > 0) {
-                await timeout(delay);
-            }
-        }
-        this.taskState = RUNNING
+        // if (this.config.startDate) {
+        //     const delay = this.config.startDate.getTime() - now.getTime();
+        //     if (delay > 0) {
+        //         await timeout(delay);
+        //     }
+        // }
 
         for (let i = 0; i < this.config.numRepetitions; i++) {
 
@@ -50,14 +54,14 @@ export default class AutomatedTask {
 
                 const result = await promiseFactory()
 
-                this.taskReport.results.push(result)//
-                this.taskReport.numSuccessfulRepetitions++
+                taskReport.results.push(result)//
+                taskReport.numSuccessfulRepetitions++
                 this.config.onSuccess && await this.config.onSuccess(result)
                 this.config.shouldStopOnSuccess && await this.config.shouldStopOnSuccess(result)
-                await timeout(this.config.delay as number)
+                await timeout(this.config.delay)
             } catch (error) {
-                this.taskReport.numErrors++
-                this.taskReport.errors.push(error)
+                taskReport.numErrors++
+                taskReport.errors.push(error)
                 this.config.onError && await this.config.onError(error)
                 const shouldStop = this.config.shouldStopOnError ? await this.config.shouldStopOnError(error) : false
                 if (shouldStop) {
@@ -66,24 +70,33 @@ export default class AutomatedTask {
             }
 
         }
-        this.taskState = FINISHED
-        return this.taskReport
+        taskReport.completedAt = new Date()
+        return taskReport as TaskReport
+    }
+
+    async startScheduled(schedule:Schedule){
+        const now = new Date()
+        if (schedule.startDate) {
+            const delay = schedule.startDate.getTime() - now.getTime();
+            if (delay > 0) {
+                await timeout(delay);
+            }
+        }
+        const report = await this.start()
+        return report
     }
 
     stop() {
         this.isStopped = true
-        this.taskState = FINISHED
         this.pausedDeferred.resolve()
     }
 
     pause() {
-        this.taskState = PAUSED
         this.pausedDeferred = createDeferred()
     }
 
-    resume() {       
+    resume() {
         this.pausedDeferred.resolve()
-        this.taskState = RUNNING
     }
 
     increaseDelay(mil: number = 100) {

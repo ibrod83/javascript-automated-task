@@ -5,25 +5,33 @@ export interface AutomatedTaskConfig {
     shouldStopOnSuccess?: (result: any) => boolean |  Promise<boolean>
     onError?: (e: any) =>  Promise<void>| void 
     onSuccess?: (result: any) => void | Promise<void> 
-    numRepetitions: number
+    numRepetitions?: number
     delay?: number
-    startDate?: Date
     taskFactory: TaskFactory    
+
 }
+
+export type InternalAutomatedTaskConfig = Required<Pick<AutomatedTaskConfig, 'delay' | 'numRepetitions'>> & Omit<AutomatedTaskConfig, 'delay' | 'numRepetitions'>;
 
 
 export interface TaskReport{
+    completedAt:Date,
+    startedAt:Date,
     numErrors: number
     numSuccessfulRepetitions: number 
     results: any[],
     errors:any[]
 }
 
-export const CREATED = "created";
-export const RUNNING = "running";
-export const PAUSED = "paused";
-export const FINISHED = "finished";
+export type InitialTaskReport = Partial<Pick<TaskReport, 'completedAt'>> & Required<Omit<TaskReport, 'completedAt'>>;
 
-export type TaskState = typeof CREATED | typeof RUNNING | typeof PAUSED | typeof FINISHED;
+
+export interface Schedule{
+    startDate: Date
+    endDate?: Date
+    repeat?: boolean
+}
+
+
 
 // type MaybePromise<T> = T | Promise<T>;

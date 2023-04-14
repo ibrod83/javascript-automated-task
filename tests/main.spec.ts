@@ -155,7 +155,7 @@ describe('AutomatedTask', () => {
     }, 25); // Call stop() after 25ms
 
     const taskReport = await promise;//
-    expect(taskReport.numSuccessfulRepetitions).toBeLessThan(config.numRepetitions);
+    expect(taskReport.numSuccessfulRepetitions).toBeLessThan(config.numRepetitions as number);
     expect(taskReport.numErrors).toBe(0);
     expect(taskReport.results.includes('success')).toBe(true)
   });
@@ -284,10 +284,10 @@ describe('AutomatedTask', () => {
     const mockFactory = () => {
       return async () => {};
     };
-    const config = { numRepetitions: 1, taskFactory: mockFactory, startDate };
+    const config = { numRepetitions: 1, taskFactory: mockFactory };
     const task = new AutomatedTask(config);
     const start = Date.now()
-    await task.start();
+    await task.startScheduled({startDate});
     const end = Date.now()
     const timeDifference = end - start;
     expect(timeDifference).toBeGreaterThanOrEqual(1000);//
