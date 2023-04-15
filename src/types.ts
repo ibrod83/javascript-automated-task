@@ -7,6 +7,7 @@ export interface AutomatedTaskConfig {
     onSuccess?: (result: any) => void | Promise<void> 
     numRepetitions?: number
     delay?: number
+    startDate?:Date
     taskFactory: TaskFactory    
 
 }

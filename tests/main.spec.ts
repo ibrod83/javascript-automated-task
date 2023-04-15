@@ -284,14 +284,29 @@ describe('AutomatedTask', () => {
     const mockFactory = () => {
       return async () => {};
     };
-    const config = { numRepetitions: 1, taskFactory: mockFactory };
+    const config = { numRepetitions: 1, taskFactory: mockFactory,startDate };
     const task = new AutomatedTask(config);
     const start = Date.now()
-    await task.startScheduled({startDate});
+    // await task.startScheduled({startDate});
+    await task.start();
     const end = Date.now()
     const timeDifference = end - start;
     expect(timeDifference).toBeGreaterThanOrEqual(1000);//
   });
 
+  it('should throw an error when startDate has already passed', async () => {
+    const startDate = new Date(Date.now() - 1000); // Schedule the task to start 1 second before now
+    const mockFactory = () => {
+      return async () => {};
+    };
+    const config = { numRepetitions: 1, taskFactory: mockFactory, startDate };
+    const task = new AutomatedTask(config);
+  
+    try {
+      await task.start();
+    } catch (error) {
+      expect(error.message).toEqual('Start date must be in the future.');
+    }
+  });
 
 });

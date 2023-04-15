@@ -1,5 +1,5 @@
 import { createDeferred } from "./deferred";
-import { AutomatedTaskConfig,  InitialTaskReport,  InternalAutomatedTaskConfig,  Schedule,  TaskReport,  } from "./types";
+import { AutomatedTaskConfig, InitialTaskReport, InternalAutomatedTaskConfig, Schedule, TaskReport, } from "./types";
 
 
 export default class AutomatedTask {
@@ -8,19 +8,19 @@ export default class AutomatedTask {
     private pausedDeferred = createDeferred()
 
     config!: InternalAutomatedTaskConfig
-    schedule?:Schedule
-   
+    schedule?: Schedule
+
 
     constructor(config: AutomatedTaskConfig) {
         this.pausedDeferred.resolve()
         this.config = {
             delay: 0,
-            numRepetitions:1,
+            numRepetitions: 1,
             ...config
         };
     }
 
-    
+
 
     async start() {
         const now = new Date()
@@ -29,17 +29,22 @@ export default class AutomatedTask {
             numSuccessfulRepetitions: 0,
             errors: [],
             results: [],
-            startedAt:now,
+            startedAt: now,
 
         }
         taskReport.startedAt = now
 
-        // if (this.config.startDate) {
-        //     const delay = this.config.startDate.getTime() - now.getTime();
-        //     if (delay > 0) {
-        //         await timeout(delay);
-        //     }
-        // }
+        if (this.config.startDate) {
+            const timeDifference =this.config.startDate.getTime() - new Date().getTime();
+
+            if (timeDifference <= 0) {
+                throw new Error("Start date must be in the future.");
+            }
+            const delay = this.config.startDate.getTime() - now.getTime();
+            if (delay > 0) {
+                await timeout(delay);
+            }
+        }
 
         for (let i = 0; i < this.config.numRepetitions; i++) {
 
@@ -74,7 +79,7 @@ export default class AutomatedTask {
         return taskReport as TaskReport
     }
 
-    async startScheduled(schedule:Schedule){
+    async startScheduled(schedule: Schedule) {
         const now = new Date()
         if (schedule.startDate) {
             const delay = schedule.startDate.getTime() - now.getTime();
