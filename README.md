@@ -18,7 +18,7 @@ npm install javascript-automated-task
 # Table of Contents
 
 - [Examples](#examples)
-  - [Basic](#basic)
+  - [Basic](#basic)  
   - [onError and onSuccess hooks](#onerror-and-onsuccess-hooks)
   - [Decide if to stop in case of an error](#decide-if-to-stop-in-case-of-an-error)
   - [Decide if to stop in case of a successful repetition](#decide-if-to-stop-in-case-of-a-successful-repetition)
@@ -26,6 +26,7 @@ npm install javascript-automated-task
   - [Stop](#stop)
   - [Increase and decrease speed](#increase-and-decrease-speed)
   - [Schedule the task](#schedule-the-task)
+  - [Run at a certain time every day](#Run-at-a-certain-time-every-day)
         
 
 
@@ -65,6 +66,8 @@ npm install javascript-automated-task
 
    })() 
 ```
+
+
 
 #### onError and onSuccess hooks
 
@@ -320,6 +323,43 @@ You can schedule the task, by providing a Date object via the optional startDate
         const task = new AutomatedTask(config);   
 
         const taskReport = await task.start();//Will start in 20 seconds
+   })() 
+```
+
+
+#### Run at a certain time every day
+If you want the task to be repeated at a certain time every day, you can use a combination of startDate and delay
+
+
+```javascript
+   import { AutomatedTask, AutomatedTaskConfig, TaskFactory,TaskReport } from "javascript-automated-task";
+
+   (async()=>{
+
+      //Lets say you want this to start on January 1st 2023, 9am
+      const date = new Date(2023, 0, 1, 9, 0, 0);
+
+      const taskFactory: TaskFactory = () => {
+          return () => {
+            return "hey"
+          };
+        };
+
+        const millisecondsIn24Hours = 24*60*60*1000 
+
+        const config: AutomatedTaskConfig = {
+            delay: millisecondsIn24Hours,
+            numRepetitions: 7,//Will continue for one week
+            taskFactory,
+            onSuccess(r:any){
+                console.log(r)
+            },
+            startDate:date 
+        };
+
+        const task = new AutomatedTask(config);   
+
+        const taskReport = await task.start();//Will continue for one week, unless manually stopped before, every day at 9am.
    })() 
 ```
 
