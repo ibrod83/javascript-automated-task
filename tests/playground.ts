@@ -1,4 +1,5 @@
 import AutomatedTask from "../src/AutomatedTask";
+import NodeFileCachePlugin from "./NodeFileCachePlugin";
 // import Scheduler from "../src/Scheduler";
 
 
@@ -24,16 +25,23 @@ function taskFactory() {
 }
 
 (async () => {
+    let counter = 0
     const config = {
-        delay: 100,
-        numRepetitions: 10,
+        delay: 1000,
+        numRepetitions: 20,
         taskFactory: taskFactory,
         onSuccess(r:any){
-            console.log(r)
+            counter++
+            console.log(counter)
         },
-        startDate:getDate20SecondsInFuture()
+        // startDate:getDate20SecondsInFuture()
     }
+    const cache = new NodeFileCachePlugin('test.json')
+
     const task = new AutomatedTask(config);
+
+    task.registerCachePlugin(cache)
+
     const report = await task.start()
     console.log(report)
     // const futureDate = getDate20SecondsInFuture();

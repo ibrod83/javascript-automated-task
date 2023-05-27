@@ -1,14 +1,16 @@
 import { createDeferred } from "./deferred";
-import { AutomatedTaskConfig, InitialTaskReport, InternalAutomatedTaskConfig, Schedule, TaskReport, } from "./types";
+import { AutomatedTaskConfig, State, InternalAutomatedTaskConfig, Schedule, TaskReport, CachePlugin, } from "./types";
+import { timeout } from "./utils";
+
 
 
 export default class AutomatedTask {
 
-    private isStopped = false
     private pausedDeferred = createDeferred()
-
+    private cachePlugin?: CachePlugin
     config!: InternalAutomatedTaskConfig
     schedule?: Schedule
+    state: State
 
 
     constructor(config: AutomatedTaskConfig) {
@@ -18,24 +20,34 @@ export default class AutomatedTask {
             numRepetitions: 1,
             ...config
         };
-    }
-
-
-
-    async start() {
-        const now = new Date()
-        const taskReport: InitialTaskReport = {
+        this.state = {
+            isFirstRun: true,
+            hasFinished: false,
             numErrors: 0,
             numSuccessfulRepetitions: 0,
             errors: [],
             results: [],
-            startedAt: now,
-
+            startedAt: null,
+            isStopped: false
         }
-        taskReport.startedAt = now
 
+
+    }
+
+    async setState(newState: Partial<State>) {
+        this.state = { ...this.state, ...newState };
+        if (this.cachePlugin) {
+            await this.cachePlugin.setState(this.state)
+        }
+    }
+
+    async registerCachePlugin(cache: CachePlugin) {
+        this.cachePlugin = cache
+    }
+
+    private async handleStartDate(now:Date) {
         if (this.config.startDate) {
-            const timeDifference =this.config.startDate.getTime() - new Date().getTime();
+            const timeDifference = this.config.startDate.getTime() - new Date().getTime();
 
             if (timeDifference <= 0) {
                 throw new Error("Start date must be in the future.");
@@ -45,11 +57,33 @@ export default class AutomatedTask {
                 await timeout(delay);
             }
         }
+    } 
 
-        for (let i = 0; i < this.config.numRepetitions; i++) {
+    private async handleCache(now:Date) {
+        if (this.cachePlugin) {
+            const state = await this.cachePlugin.getState()
+            if(state.isFirstRun){
+                await this.setState({ startedAt: now,isFirstRun:false });
+            }else{
+                await this.setState(state);
+            }
+        } else {
+            await this.setState({ startedAt: now });
+        }
+    }
+
+    async start() {
+        const now = new Date()
+        
+        await this.handleCache(now)
+
+        await this.handleStartDate(now)
+
+        while (this.state.numSuccessfulRepetitions+this.state.numErrors < this.config.numRepetitions) {
 
             await this.pausedDeferred.promise
-            if (this.isStopped) {
+            if (this.state.isStopped) {
+                await this.setState({ hasFinished: true });
                 break;
             }
 
@@ -59,40 +93,50 @@ export default class AutomatedTask {
 
                 const result = await promiseFactory()
 
-                taskReport.results.push(result)//
-                taskReport.numSuccessfulRepetitions++
+                await this.setState({
+                    results: [...this.state.results, result],
+                    numSuccessfulRepetitions: this.state.numSuccessfulRepetitions + 1,
+                });
+
                 this.config.onSuccess && await this.config.onSuccess(result)
-                this.config.shouldStopOnSuccess && await this.config.shouldStopOnSuccess(result)
+
+                if (this.config.shouldStopOnSuccess) {
+                    const shouldStop = await this.config.shouldStopOnSuccess(result)
+                    if (shouldStop) {
+                        this.state.hasFinished = true
+                        break;
+                    }
+                }
+
+
                 await timeout(this.config.delay)
             } catch (error) {
-                taskReport.numErrors++
-                taskReport.errors.push(error)
+                await this.setState({
+                    numErrors: this.state.numErrors + 1,
+                    errors: [...this.state.errors, error],
+                });
                 this.config.onError && await this.config.onError(error)
                 const shouldStop = this.config.shouldStopOnError ? await this.config.shouldStopOnError(error) : false
                 if (shouldStop) {
+                    this.state.hasFinished = true
                     break;
                 }
-            }
-
+            } 
         }
-        taskReport.completedAt = new Date()
-        return taskReport as TaskReport
-    }
 
-    async startScheduled(schedule: Schedule) {
-        const now = new Date()
-        if (schedule.startDate) {
-            const delay = schedule.startDate.getTime() - now.getTime();
-            if (delay > 0) {
-                await timeout(delay);
-            }
+        await this.setState({ hasFinished: true });
+
+        const taskReport: TaskReport = {
+            ...this.state,
+            startedAt: this.state.startedAt as Date,
+            completedAt: new Date(),
         }
-        const report = await this.start()
-        return report
+        return taskReport;
     }
+    
 
-    stop() {
-        this.isStopped = true
+    async stop() {
+        await this.setState({ isStopped: true });
         this.pausedDeferred.resolve()
     }
 
@@ -119,9 +163,7 @@ export default class AutomatedTask {
 }
 
 
-function timeout(milliseconds: number) {//
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
-}
+
 
 
 // (async()=>{

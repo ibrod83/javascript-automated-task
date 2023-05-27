@@ -88,22 +88,23 @@ describe('AutomatedTask', () => {
     expect(report.results).toEqual([mockData]);
   });
 
-  it('should call shouldStopOnSuccess with the result of the task factory', async () => {
+  it('should call shouldStopOnSuccess with the result of the task factory, and stop after one repetition', async () => {
     const mockData = { foo: 'bar' };
     const mockFactory = () => async () => mockData;
     let resultFromHook;
+    let counter = 0;
     const config: AutomatedTaskConfig = {
-      numRepetitions: 1,
-      // delay: 0,
+      numRepetitions: 10,
       taskFactory: mockFactory,
       shouldStopOnSuccess: (result) => {
-
+        counter++;
         resultFromHook = result
         return true;
       },
     };
     const task = new AutomatedTask(config);
     await task.start();
+    expect(counter).toEqual(1);
     expect(resultFromHook).toEqual(mockData);
   })
 
