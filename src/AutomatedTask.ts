@@ -35,7 +35,7 @@ export default class AutomatedTask {
         taskReport.startedAt = now
 
         if (this.config.startDate) {
-            const timeDifference =this.config.startDate.getTime() - new Date().getTime();
+            const timeDifference = this.config.startDate.getTime() - new Date().getTime();
 
             if (timeDifference <= 0) {
                 throw new Error("Start date must be in the future.");
@@ -62,7 +62,13 @@ export default class AutomatedTask {
                 taskReport.results.push(result)//
                 taskReport.numSuccessfulRepetitions++
                 this.config.onSuccess && await this.config.onSuccess(result)
-                this.config.shouldStopOnSuccess && await this.config.shouldStopOnSuccess(result)
+
+                if (this.config.shouldStopOnSuccess) {
+                    const shouldStop = await this.config.shouldStopOnSuccess(result)
+                    if (shouldStop) {
+                        break;
+                    }
+                }
                 await timeout(this.config.delay)
             } catch (error) {
                 taskReport.numErrors++
@@ -123,18 +129,4 @@ function timeout(milliseconds: number) {//
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-
-// (async()=>{
-//     while(true){
-//         // await timeout(50)
-//         // console.log(Math.random())
-//         await createFakePromise()
-//     }
-// })()
-
-
-
-// function createFakePromise(){
-//     return Promise.resolve()
-// }
 

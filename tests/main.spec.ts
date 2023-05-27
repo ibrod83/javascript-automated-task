@@ -92,12 +92,13 @@ describe('AutomatedTask', () => {
     const mockData = { foo: 'bar' };
     const mockFactory = () => async () => mockData;
     let resultFromHook;
+    let counter=0;
     const config: AutomatedTaskConfig = {
-      numRepetitions: 1,
+      numRepetitions: 2,
       // delay: 0,
       taskFactory: mockFactory,
       shouldStopOnSuccess: (result) => {
-
+        counter++;
         resultFromHook = result
         return true;
       },
@@ -105,6 +106,7 @@ describe('AutomatedTask', () => {
     const task = new AutomatedTask(config);
     await task.start();
     expect(resultFromHook).toEqual(mockData);
+    expect(counter).toEqual(1);
   })
 
   it("should execute the bound function and maintain the correct context", async () => {
