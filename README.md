@@ -375,7 +375,9 @@ For that, you can use the CachePlugin interface. This allows you to implement yo
     getState: () => Promise<State>
     setState: (state: State) => Promise<void>
 }
-// Your underlying storage/memory MUST include at least "isFirstRun" property, with a value of true, for the first run. It must be able to accommodate the entire State interface(If you are using SQL, all columns must be present in the table, for this to work):
+// Your underlying storage/memory MUST include at least "isFirstRun" property, with a value of true, for the first run.
+// It must be able to accommodate the entire State interface(If you are using SQL, all columns must be present in the table, for this to work)
+// This is the State type:
 
 type State = {
     isFirstRun: boolean//IMPORTANT: This must be set to true initially, otherwise the mechanism wont work.
@@ -420,18 +422,13 @@ export default class NodeFileCachePlugin implements CachePlugin {
 
 //Usage of the plugin:
 
-const config = {
-        delay: 50,
-        numRepetitions: 20,
-        taskFactory: taskFactory,
-        onSuccess(r:any){
-            counter++
-            console.log(counter)
-        },
-    } 
     const cache = new NodeFileCachePlugin(path.join(__dirname, 'test.json'));//Instance of the plugin we defined above    
 
-    const task = new AutomatedTask(config);
+    const task = new AutomatedTask({
+        delay: 50,
+        numRepetitions: 20,
+        taskFactory: ()=>async()=>{console.log('task!')},
+    });
 
     task.registerCachePlugin(cache)//Register the plugin
 
