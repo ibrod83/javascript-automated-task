@@ -1,6 +1,6 @@
 import AutomatedTask from "../src/AutomatedTask";
-import NodeFileCachePlugin from "./NodeFileCachePlugin";
-// import Scheduler from "../src/Scheduler";
+import NodeFileCachePlugin from "./cache/NodeFileCachePlugin";
+// // import Scheduler from "../src/Scheduler";
 
 
 
@@ -25,6 +25,11 @@ function taskFactory() {
 }
 
 (async () => {
+    // process.on('SIGTERM', () => {
+    //     console.log('SIGTERM signal received. Shutting down gracefully...');
+    //     // Here you'd close any open resources, stop any ongoing operations, and/or kill any child processes
+    //     process.exit(0);
+    // });
     let counter = 0
     const config = {
         delay: 1000,

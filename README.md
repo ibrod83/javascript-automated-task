@@ -27,6 +27,7 @@ npm install javascript-automated-task
   - [Increase and decrease speed](#increase-and-decrease-speed)
   - [Schedule the task](#schedule-the-task)
   - [Run at a certain time every day](#Run-at-a-certain-time-every-day)
+- [Caching](#caching)  
         
 
 
@@ -363,4 +364,78 @@ If you want the task to be repeated at a certain time every day, you can use a c
    })() 
 ```
 
+## Caching
+If your process dies for some reason, you might want the task to continue from its previous state, once the program comes back to life again.
+For that, you can use the CachePlugin interface. This allows you to implement your own caching mechanism, and register it with the program.
 
+
+```javascript
+//  Every cache plugin must implement this interface:
+ CachePlugin {
+    getState: () => Promise<State>
+    setState: (state: State) => Promise<void>
+}
+// Your underlying storage/memory MUST include at least "isFirstRun" property, with a value of true, for the first run. It must be able to accommodate the entire State interface(If you are using SQL, all columns must be present in the table, for this to work):
+
+type State = {
+    isFirstRun: boolean//IMPORTANT: This must be set to true initially, otherwise the mechanism wont work.
+    hasFinished: boolean
+    wasManuallyStopped: boolean
+    numErrors: number
+    numSuccessfulRepetitions: number
+    results: any[]
+    errors: any[]
+    startedAt: Date | null
+    completedAt: Date | null
+}
+
+//An example implementation of a cache plugin, using the file system:
+
+import { State, CachePlugin } from "../../src/types";
+import fs from 'fs'
+import util from 'util'
+const writeFile = util.promisify(fs.writeFile)
+
+export default class NodeFileCachePlugin implements CachePlugin {
+    path: string
+    constructor(path: string) {
+        this.path = path
+    }     
+    async getState() {
+        if (!fs.existsSync(this.path)) {
+            const state: Partial<State> = {
+                isFirstRun: true,
+            }
+            await this.setState(state as State) 
+        }
+
+        const readFile = util.promisify(fs.readFile)
+        const fileContents = await readFile(this.path, 'utf8')
+        return JSON.parse(fileContents) as State
+    }
+    async setState(state: State) {       
+        await writeFile(this.path, JSON.stringify(state), 'utf8')
+    }  
+}   
+
+//Usage of the plugin:
+
+const config = {
+        delay: 50,
+        numRepetitions: 20,
+        taskFactory: taskFactory,
+        onSuccess(r:any){
+            counter++
+            console.log(counter)
+        },
+    } 
+    const cache = new NodeFileCachePlugin(path.join(__dirname, 'test.json'));//Instance of the plugin we defined above    
+
+    const task = new AutomatedTask(config);
+
+    task.registerCachePlugin(cache)//Register the plugin
+
+    const report = await task.start()
+
+
+```

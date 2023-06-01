@@ -15,32 +15,30 @@ export interface AutomatedTaskConfig {
 export type InternalAutomatedTaskConfig = Required<Pick<AutomatedTaskConfig, 'delay' | 'numRepetitions'>> & Omit<AutomatedTaskConfig, 'delay' | 'numRepetitions'>;
 
 
-export interface TaskReport extends Omit<State, 'isStopped' |'isFirstRun'> {
-    completedAt: Date
-    startedAt: Date
-}
+// export interface TaskReport extends Omit<State, 'wasManuallyStopped' |'isFirstRun'> {
+//     startedAt: Date
+// }
 
+export interface TaskReport extends State {}
 
 export type State = {
     isFirstRun: boolean
     hasFinished: boolean
-    isStopped: boolean
+    wasManuallyStopped: boolean
     numErrors: number
     numSuccessfulRepetitions: number
     results: any[]
     errors: any[]
     startedAt: Date | null
+    completedAt: Date | null
 }
 
 
-export interface Schedule {
-    startDate: Date
-    endDate?: Date
-    repeat?: boolean
-}
+
+
 
 export interface CachePlugin {
-    getState: () => Promise<{isFirstRun:boolean}>
+    getState: () => Promise<State>
     setState: (state: State) => Promise<void>
 }
 

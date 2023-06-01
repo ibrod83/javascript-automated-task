@@ -88,13 +88,13 @@ describe('AutomatedTask', () => {
     expect(report.results).toEqual([mockData]);
   });
 
-  it('should call shouldStopOnSuccess with the result of the task factory, and stop after one repetition', async () => {
+  it('should call shouldStopOnSuccess with the result of the task factory', async () => {
     const mockData = { foo: 'bar' };
     const mockFactory = () => async () => mockData;
     let resultFromHook;
-    let counter = 0;
+    let counter=0;
     const config: AutomatedTaskConfig = {
-      numRepetitions: 10,
+      numRepetitions: 2,
       taskFactory: mockFactory,
       shouldStopOnSuccess: (result) => {
         counter++;
@@ -104,8 +104,8 @@ describe('AutomatedTask', () => {
     };
     const task = new AutomatedTask(config);
     await task.start();
-    expect(counter).toEqual(1);
     expect(resultFromHook).toEqual(mockData);
+    expect(counter).toEqual(1);
   })
 
   it("should execute the bound function and maintain the correct context", async () => {
@@ -262,7 +262,7 @@ describe('AutomatedTask', () => {
 
   it('should call onSuccess when a task is executed successfully', async () => {
     let onSuccessCalled = false;
-    const results:any[] = []
+    const results:string[]= []
     const mockFactory = () => async () => 'success';
     const config: AutomatedTaskConfig = {
       numRepetitions: 2,
