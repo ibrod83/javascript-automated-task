@@ -263,7 +263,7 @@ describe('AutomatedTask', () => {
 
   it('should call onSuccess when a task is executed successfully', async () => {
     let onSuccessCalled = false;
-    const results:any[] = []
+    const results:string[]= []
     const mockFactory = () => async () => 'success';
     const config: AutomatedTaskConfig = {
       numRepetitions: 2,
