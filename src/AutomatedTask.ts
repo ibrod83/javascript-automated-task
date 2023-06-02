@@ -1,5 +1,5 @@
 import { createDeferred } from "./deferred";
-import { AutomatedTaskConfig, State, InternalAutomatedTaskConfig, TaskReport, CachePlugin, } from "./types";
+import { AutomatedTaskConfig, State, InternalAutomatedTaskConfig, TaskReport, PersistencePlugin, } from "./types";
 import { timeout } from "./utils";
 
 
@@ -7,7 +7,7 @@ import { timeout } from "./utils";
 export default class AutomatedTask {
 
     private pausedDeferred = createDeferred()
-    private cachePlugin?: CachePlugin
+    private persistencePlugin?: PersistencePlugin
     private config!: InternalAutomatedTaskConfig
     private state: State
 
@@ -40,14 +40,14 @@ export default class AutomatedTask {
 
     private async setState(newState: Partial<State>) {
         this.state = { ...this.state, ...newState };
-        if (this.cachePlugin) {
-            await this.cachePlugin.setState(this.state)
+        if (this.persistencePlugin) {
+            await this.persistencePlugin.setState(this.state)
         }
     }
 
 
 
-    //take care of this in the context of cached restart
+    //take care of this in the context of persistenced restart
     private async handleScheduledStart() {
         const now = new Date()
         const startDate = this.config.startDate as Date
@@ -127,24 +127,24 @@ export default class AutomatedTask {
     }
 
     /**
-     * Start the procedure with a cache plugin present
+     * Start the procedure with a persistence plugin present
      */
     private async startWithCaching() {
 
-        var startingStateFromCache = await this.cachePlugin?.getState()
-        if (startingStateFromCache?.isFirstRun) {
+        var startingStateFromPersistence = await this.persistencePlugin?.getState()
+        if (startingStateFromPersistence?.isFirstRun) {
             if (this.config.startDate) {// Being that this is already a "new" task, we need to handle the scheduled start as usual.
                 await this.handleScheduledStart()
             }
             await this.setState({ startedAt: new Date(), isFirstRun: false })
         } else {
-            if (startingStateFromCache?.hasFinished) {
+            if (startingStateFromPersistence?.hasFinished) {
                 if (this.config.startDate) {// Being that this is already a "new" task, we need to handle the scheduled start as usual.
                     await this.handleScheduledStart()
                 }
                 await this.setState({ ...this.getDefaultState(), startedAt: new Date(), isFirstRun: false })
             } else {
-                await this.setState(startingStateFromCache as State);
+                await this.setState(startingStateFromPersistence as State);
             }
         }
 
@@ -152,7 +152,7 @@ export default class AutomatedTask {
     }
 
     /**
-     * Start the procedure, without a cache plugin present
+     * Start the procedure, without a persistence plugin present
      */
     private async startWithoutCaching() {
         if (this.config.startDate) {
@@ -164,7 +164,7 @@ export default class AutomatedTask {
 
     async start() {
 
-        if (this.cachePlugin) {
+        if (this.persistencePlugin) {
             await this.startWithCaching()
         } else {
             await this.startWithoutCaching()
@@ -205,8 +205,8 @@ export default class AutomatedTask {
         this.config.delay = diff
     }
 
-    async registerCachePlugin(cache: CachePlugin) {
-        this.cachePlugin = cache
+    async registerPersistencePlugin(persistence: PersistencePlugin) {
+        this.persistencePlugin = persistence
     }
 }
 

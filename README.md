@@ -27,7 +27,7 @@ npm install javascript-automated-task
   - [Increase and decrease speed](#increase-and-decrease-speed)
   - [Schedule the task](#schedule-the-task)
   - [Run at a certain time every day](#Run-at-a-certain-time-every-day)
-- [Caching](#caching)  
+- [Persisting state](#persisting-state)  
         
 
 
@@ -364,14 +364,14 @@ If you want the task to be repeated at a certain time every day, you can use a c
    })() 
 ```
 
-## Caching
+## Persisting state
 If your process dies for some reason, you might want the task to continue from its previous state, once the program comes back to life again.
-For that, you can use the CachePlugin interface. This allows you to implement your own caching mechanism, and register it with the program.
+For that, you can use the PersistencePlugin interface. This allows you to implement your own persistence state mechanism, and register it with the program.
 
 
 ```javascript
-//  Every cache plugin must implement this interface:
- CachePlugin {
+//  Every persistence plugin must implement this interface:
+ PersistencePlugin {
     getState: () => Promise<State>
     setState: (state: State) => Promise<void>
 }
@@ -391,14 +391,14 @@ type State = {
     completedAt: Date | null
 }
 
-//An example implementation of a cache plugin, using the file system:
+//An example implementation of a persistence plugin, using the file system:
 
-import { State, CachePlugin } from "../../src/types";
+import { State, PersistencePlugin } from "../../src/types";
 import fs from 'fs'
 import util from 'util'
 const writeFile = util.promisify(fs.writeFile)
 
-export default class NodeFileCachePlugin implements CachePlugin {
+export default class NodeFilePersistencePlugin implements PersistencePlugin {
     path: string
     constructor(path: string) {
         this.path = path
@@ -422,7 +422,7 @@ export default class NodeFileCachePlugin implements CachePlugin {
 
 //Usage of the plugin:
 
-    const cache = new NodeFileCachePlugin(path.join(__dirname, 'test.json'));//Instance of the plugin we defined above    
+    const persistence = new NodeFilePersistencePlugin(path.join(__dirname, 'test.json'));//Instance of the plugin we defined above    
 
     const task = new AutomatedTask({
         delay: 50,
@@ -430,7 +430,7 @@ export default class NodeFileCachePlugin implements CachePlugin {
         taskFactory: ()=>async()=>{console.log('task!')},
     });
 
-    task.registerCachePlugin(cache)//Register the plugin
+    task.registerPersistencePlugin(persistence)//Register the plugin
 
     const report = await task.start()
 

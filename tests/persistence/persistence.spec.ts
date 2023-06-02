@@ -4,13 +4,13 @@ import kill from 'tree-kill';
 import fs from 'fs';
 import { ChildProcess } from 'child_process';
 import { AutomatedTask } from '../../src';
-import NodeFileCachePlugin from './NodeFileCachePlugin';
+import NodeFilePersistencePlugin from './NodeFilePersistencePlugin';
 import path from 'path';
 import { getDateInTheFuture } from './utils';
 
-const jsonPath = './tests/cache/test.json';
-const scriptPath = './tests/cache/cache_script.ts';
-describe('Cache', function () {
+const jsonPath = './tests/persistence/test.json';
+const scriptPath = './tests/persistence/persistence_script.ts';
+describe('Persistence', function () {
 
     this.beforeEach(() => {
         if (fs.existsSync(jsonPath)) {
@@ -18,7 +18,7 @@ describe('Cache', function () {
         }
     });
 
-    it('Should resume from cached state, then perform again the entire task from clean state', async function () {
+    it('Should resume from persisted state, then perform again the entire task from clean state', async function () {
 
         await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -27,23 +27,23 @@ describe('Cache', function () {
         const firstProcess = await createProcess(scriptPath, conditionFn1);
         kill(firstProcess.pid as number);
 
-        var cachedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-        expect(cachedState.results.length).toEqual(10);
+        var persistedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+        expect(persistedState.results.length).toEqual(10);
         // Condition function that returns true when 'DONE' appears in the output
         const conditionFn2 = (data: any) => data.includes('DONE');
         const secondProcess = await createProcess(scriptPath, conditionFn2);
         kill(secondProcess.pid as number);
 
-        cachedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-        expect(cachedState.results.length).toEqual(20);
-        const completedAtAfterCachedUsage = cachedState.completedAt;
+        persistedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+        expect(persistedState.results.length).toEqual(20);
+        const completedAtAfterPersistedUsage = persistedState.completedAt;
 
-        //IMPORTANT: the third process should not be able to use the cache, according to the current implementation
+        //IMPORTANT: the third process should not be able to use the persistence, according to the current implementation
         const thirdProcess = await createProcess(scriptPath, conditionFn2);
         kill(thirdProcess.pid as number);
-        cachedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-        expect(cachedState.results.length).toEqual(20);
-        expect(new Date(cachedState.completedAt).getTime()).toBeGreaterThan(new Date(completedAtAfterCachedUsage).getTime());
+        persistedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+        expect(persistedState.results.length).toEqual(20);
+        expect(new Date(persistedState.completedAt).getTime()).toBeGreaterThan(new Date(completedAtAfterPersistedUsage).getTime());
 
     });
 
@@ -72,17 +72,17 @@ describe('Cache', function () {
 
         
         const conditionFn1 = (_, counter) => counter === 5;
-        const firstProcess = await createProcess('./tests/cache/cache_script_startDate.ts', conditionFn1);
+        const firstProcess = await createProcess('./tests/persistence/persistence_script_startDate.ts', conditionFn1);
         kill(firstProcess.pid as number);
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         const conditionFn2 = (data: any) => data.includes('DONE');
-        const secondProcess = await createProcess('./tests/cache/cache_script_startDate.ts', conditionFn2);
+        const secondProcess = await createProcess('./tests/persistence/persistence_script_startDate.ts', conditionFn2);
         kill(secondProcess.pid as number);
 
-        const cachedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-        expect(cachedState.results.length).toEqual(30);
-        expect(cachedState.hasFinished).toBe(true);//
+        const persistedState = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+        expect(persistedState.results.length).toEqual(30);
+        expect(persistedState.hasFinished).toBe(true);//
         
     });
 });
@@ -121,11 +121,11 @@ const createTaskWithPlugin = async ({ startDate, taskFactory }) => {
         taskFactory,
     }
 
-    const cache = new NodeFileCachePlugin(path.join(__dirname, 'test.json'));
+    const persistence = new NodeFilePersistencePlugin(path.join(__dirname, 'test.json'));
 
     const task = new AutomatedTask(config);
 
-    task.registerCachePlugin(cache)
+    task.registerPersistencePlugin(persistence)
     return task;
 }
 

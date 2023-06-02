@@ -1,9 +1,9 @@
-import { State, CachePlugin } from "../../src/types";
+import { State, PersistencePlugin } from "../../src/types";
 import fs from 'fs'
 import util from 'util'
 const writeFile = util.promisify(fs.writeFile)
 
-export default class NodeFileCachePlugin implements CachePlugin {
+export default class NodeFilePersistencePlugin implements PersistencePlugin {
     path: string
     constructor(path: string) {
         this.path = path

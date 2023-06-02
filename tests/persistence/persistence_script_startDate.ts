@@ -1,6 +1,6 @@
 import path from "path";
 import AutomatedTask from "../../src/AutomatedTask";
-import NodeFileCachePlugin from "./NodeFileCachePlugin";
+import NodeFilePersistencePlugin from "./NodeFilePersistencePlugin";
 import {  getDateInTheFuture } from "./utils";
 
 function taskFactory() {
@@ -26,12 +26,12 @@ function taskFactory() {
 
     }
  
-    const cache = new NodeFileCachePlugin(path.join(__dirname, 'test.json'));
+    const persistence = new NodeFilePersistencePlugin(path.join(__dirname, 'test.json'));
     
 
     const task = new AutomatedTask(config);
 
-    task.registerCachePlugin(cache)
+    task.registerPersistencePlugin(persistence)
 
     const report = await task.start()
     console.log('DONE')

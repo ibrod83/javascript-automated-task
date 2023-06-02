@@ -37,7 +37,7 @@ export type State = {
 
 
 
-export interface CachePlugin {
+export interface PersistencePlugin {
     getState: () => Promise<State>
     setState: (state: State) => Promise<void>
 }

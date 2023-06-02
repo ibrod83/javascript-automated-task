@@ -1,6 +1,6 @@
 {
   "name": "javascript-automated-task",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "main": "build/cjs/index.js",
   "module": "build/esm/index.js",
   "umd:main": "build/umd/index.js",
@@ -9,7 +9,7 @@
     "nodemon": "nodemon ./tests/playground.ts",
     "test": "npm run build:umd && ts-mocha --timeout 100000 tests/**/*.spec.ts -w --watch-files '**/*.ts'",
     "test-puppeteer": "npm run build:umd && ts-mocha --timeout 100000 tests/puppeteer.spec.ts -w --watch-files '**/*.ts'",
-    "test-cache": "ts-mocha --timeout 100000 tests/cache/cache.spec.ts -w --watch-files '**/*.ts'",
+    "test-persistence": "ts-mocha --timeout 100000 tests/persistence/persistence.spec.ts -w --watch-files '**/*.ts'",
     "start": "tsc --watch",
     "build": "npm run build:cjs && npm run build:esm && npm run build:umd",
     "build:cjs": "node cleanup cjs && tsc -p config/tsconfig.cjs.json",

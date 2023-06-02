@@ -1,5 +1,5 @@
 import AutomatedTask from "../src/AutomatedTask";
-import NodeFileCachePlugin from "./cache/NodeFileCachePlugin";
+import NodeFilePersistencePlugin from "./persistence/NodeFilePersistencePlugin";
 // // import Scheduler from "../src/Scheduler";
 
 
@@ -41,11 +41,11 @@ function taskFactory() {
         },
         // startDate:getDate20SecondsInFuture()
     }
-    const cache = new NodeFileCachePlugin('test.json')
+    const persistence = new NodeFilePersistencePlugin('test.json')
 
     const task = new AutomatedTask(config);
 
-    task.registerCachePlugin(cache)
+    task.registerPersistencePlugin(persistence)
 
     const report = await task.start()
     console.log(report)
